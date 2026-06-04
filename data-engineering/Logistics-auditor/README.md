@@ -1,165 +1,67 @@
-# Project Brief: The "Last Mile" Logistics Auditor
-
-**Client:** Veridi Logistics (Global E-Commerce Aggregator)
-**Deliverable:** Public Dashboard, Code Notebook & Insight Presentation
+# The "Last Mile" Logistics Auditor
+**Client:** Veridi Logistics | **Dataset:** Olist Brazilian E-Commerce | **Author:** Manyara Bonface Baraka
 
 ---
 
-## 1. Business Context
+## A. Executive Summary
 
-**Veridi Logistics** manages shipping for thousands of online sellers. Recently, the CEO has noticed a spike in negative customer reviews. She has a "gut feeling" that the problem isn't just that packages are late, but that the estimated delivery dates provided to customers are wildly inaccurate (i.e., we are over-promising and under-delivering).
-
-She needs you to audit the delivery data to find the root cause. She specifically wants to know: **"Are we failing specific regions, or is this a nationwide problem?"**
-
-Your job is to build a "Delivery Performance" audit tool that connects the dots between **Logistics Data** (when a package arrived) and **Customer Sentiment** (how they rated the experience).
-
-## 2. The Data
-
-You will use the **Olist E-Commerce Dataset**, a real commercial dataset from a Brazilian marketplace. This is a relational database dump, meaning the data is split across multiple CSV files.
-
-- **Source:** [Kaggle - Olist Brazilian E-Commerce Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
-- **Key Files to Use:**
-  - `olist_orders_dataset.csv` (The central table)
-  - `olist_order_reviews_dataset.csv` (Sentiment)
-  - `olist_customers_dataset.csv` (Location)
-  - `olist_products_dataset.csv` (Categories)
-
-## 3. Tooling Requirements
-
-You have the flexibility to choose your development environment:
-
-- **Option A (Recommended):** Use a cloud-hosted notebook like **Google Colab**, or **Deepnote**, etc.
-- **Option B:** Use a local **Jupyter Notebook** or **VS Code**.
-  - _Condition:_ If you choose this, you must ensure your code is reproducible. Do not reference local file paths (e.g., `C:/Downloads/...`). Assume the dataset is in the same folder as your notebook.
-- **Dashboarding:** The final output must be a **publicly accessible link** (e.g., Tableau Public, Google Looker Studio, Streamlit Cloud, or PowerBI Web, etc.).
+Analysis of 96,470 delivered orders reveals that 8.11% arrive later than promised, with the Nordeste region disproportionately affected at 15.19% late rate — nearly double every other region. Contrary to the assumption that remoteness drives delays, the Norte region (most geographically remote) recorded only 7.51% late rate, indicating a regional operational gap in the Northeast rather than a distance problem. Late deliveries have a severe impact on customer satisfaction — Super Late orders (>5 days late) average a review score of 1.78/5 compared to 4.29/5 for On Time orders, a 58% drop. Most critically, Super Late deliveries put an estimated R$499,145 in revenue at risk annually due to customer churn, with Rio de Janeiro (R$121,885) and São Paulo (R$113,623) representing the highest financial exposure — not because of worst late rates, but because of highest order volumes.
 
 ---
 
-## 4. User Stories & Acceptance Criteria
+## B. Project Links
 
-### Story 1: The Schema Builder
-
-**As a** Data Engineer,
-**I want** to join the Orders, Reviews, and Customers tables into a single master dataset,
-**So that** I can analyze a customer's location and their review score in the same row.
-
-- **Acceptance Criteria:**
-  - Load the raw CSVs into your notebook.
-  - Perform the correct joins (e.g., join Reviews to Orders on `order_id`, join Customers to Orders on `customer_id`).
-  - **Check:** Ensure you don't accidentally duplicate rows (a common error with 1-to-many joins).
-
-### Story 2: The "Real" Delay Calculator
-
-**As a** Logistics Manager,
-**I want** to know the difference between the "Estimated Delivery Date" and the "Actual Delivery Date,"
-**So that** I can see how often we are lying to customers.
-
-- **Acceptance Criteria:**
-  - Create a new calculated column: `Days_Difference` = `order_estimated_delivery_date` - `order_delivered_customer_date`.
-  - Classify orders into statuses: "On Time", "Late", and "Super Late" (> 5 days late).
-  - Handle missing values: Some orders were never delivered (`order_status` = 'canceled' or 'unavailable'). These should be excluded or flagged separately.
-
-### Story 3: The Geographic Heatmap
-
-**As a** Regional Director,
-**I want** to see which specific States (`customer_state`) have the highest percentage of late deliveries,
-**So that** I can focus my repair efforts on the worst regions.
-
-- **Acceptance Criteria:**
-  - Calculate the % of late orders per State.
-  - Visualize this on a map or a bar chart.
-  - **Insight:** Identify if "Remote" states (far from the distribution center) are disproportionately affected.
-
-### Story 4: The Sentiment Correlation
-
-**As a** Customer Success Lead,
-**I want** to see if late deliveries actually cause bad reviews,
-**So that** I can prove to the CEO that logistics is the problem.
-
-- **Acceptance Criteria:**
-  - Create a visualization comparing "Delivery Delay (Days)" vs "Average Review Score (1-5)".
-  - Show the average review score for "On Time" orders vs. "Late" orders.
+- **Notebook:** [Google Colab — Amaliteh_DE_Logistic.ipynb](https://colab.research.google.com/drive/1yD7HfnDkY-sQZNPSDaPZIt2oF0MdQvxD?usp=sharing)
+- **Dashboard:** [Tableau Public — Veridi Logistics Delivery Performance Audit](https://public.tableau.com/app/profile/bonface.manyara/viz/VeridiLogisticsDeliveryPerformanceAudit_17806025621570/VeridiLogisticsDeliveryAudit)
+- **Presentation:** [Google Slides — Delivery Performance Audit](https://docs.google.com/presentation/d/1MtIa_RTVGQI6ZvRR1SDGnB8sJxVN_BYeyXq-agQUaRg/edit?usp=sharing)
 
 ---
 
-## 5. Bonus User Story: The "Translation" Challenge
+## C. Technical Explanation
 
-**As a** Global Analyst,
-**I want** to see product categories in **English**, not Portuguese,
-**So that** I can understand if "Furniture" is harder to ship than "Electronics".
+### Data Sources
+Six CSV files from the Olist Brazilian E-Commerce dataset (Kaggle):
+- `olist_orders_dataset.csv` — central fact table (99,441 orders)
+- `olist_order_reviews_dataset.csv` — customer sentiment (99,224 reviews)
+- `olist_customers_dataset.csv` — geographic data
+- `olist_order_items_dataset.csv` — bridge table linking orders to products
+- `olist_products_dataset.csv` — product categories (Portuguese)
+- `product_category_name_translation.csv` — English category mapping
+- `olist_order_payments_dataset.csv` — payment values for Revenue at Risk analysis
 
-- **Acceptance Criteria:**
-  - The `product_category_name` is in Portuguese (e.g., `cama_mesa_banho`).
-  - Use the `product_category_name_translation.csv` file included in the dataset (or create your own mapping) to translate these into English for your final dashboard.
+### Data Cleaning
+- **Master table join:** 6 CSV files joined into a single master dataset of 99,441 rows. Deduplication assertion confirmed row count integrity throughout — 99,441 in, 99,441 out.
+- **Review deduplication:** 551 orders had multiple reviews. Resolved by keeping the most recent review per order, preserving the customer's final considered sentiment rather than averaging scores.
+- **Undelivered orders excluded:** 2,963 orders with statuses other than "delivered" (canceled, unavailable, shipped, processing, invoiced, created, approved) were excluded from delay analysis. Only delivered orders have an actual delivery date to compare against estimates.
+- **Missing delivery dates:** 8 orders marked "delivered" with no recorded delivery date were dropped — confirmed data entry errors in the source system. Impact: 0.008% of delivered orders.
+- **Category threshold:** Product categories with fewer than 100 orders were excluded from category analysis to ensure statistical reliability of late rate percentages.
+- **Date parsing:** All date columns converted from string to `datetime64` before calculations.
 
----
+### Delay Classification
+```
+days_difference = order_estimated_delivery_date - order_delivered_customer_date
 
-## 6. The "Candidate's Choice" Challenge
+Positive value = delivered early or on time
+Negative value = delivered late
 
-**As a** Creative Problem Solver,
-**I want** to include one extra feature or analysis that adds specific business value,
-**So that** I can demonstrate my ability to think beyond the basic requirements.
+On Time:    days_difference >= 0
+Late:       days_difference between -5 and -1 (1-5 days late)
+Super Late: days_difference < -5 (more than 5 days late)
+```
 
-- **Instructions:**
-  - Add one more metric, chart, or drill-down.
-  - **Requirement:** You must justify _why_ this feature matters to the business in your README.
+### Regional Classification
+Brazilian state regions were sourced directly from the GeoJSON properties (`regiao_id` field) used to build the choropleth map — no external geographic assumptions were made. São Paulo identified as distribution hub based on order volume data (40,494 orders = 42% of total).
 
----
+### Candidate's Choice — Revenue at Risk Analysis
 
-## 7. Submission Guidelines
+**Why this feature:** The CEO's question was about over-promising and under-delivering. Stories 1–4 proved *where* and *how badly* this happens. The Revenue at Risk analysis answers the follow-up question every CEO actually cares about: *"What is this costing us?"*
 
-Please edit this `README.md` file in your forked repository to include the following three sections at the top:
+**Methodology:**
+- Isolated Super Late orders (>5 days late) as the highest customer churn risk
+- Churn probability (64.4%) derived directly from the data: Super Late average review score = 1.78/5 = 35.6% satisfaction rate, meaning 64.4% dissatisfaction rate used as churn proxy
+- Revenue at Risk = `total_payment_value × churn_probability` per state
+- Payment data sourced from `olist_order_payments_dataset.csv`, aggregated by `order_id` to handle multiple payment methods per order
 
-### A. The Executive Summary
-
-- A 3-5 sentence summary of your findings.
-
-### B. Project Links
-
-- **Link to Notebook:** (e.g., Google Colab, etc.). _Ensure sharing permissions are set to "Anyone with the link can view"._
-- **Link to Dashboard:** (e.g., Tableau Public, etc.).
-- **Link to Presentation:** A link to a short slide deck (PDF/PPT) AND (Optional) a 2-minute video walkthrough (YouTube) explaining your results.
-
-### C. Technical Explanation
-
-- Briefly explain how you handled the "Data Cleaning".
-- Explain your "Candidate's Choice" addition.
-
-**Important Note on Code Submission:**
-
-- Upload your `.ipynb` notebook file to the repo.
-- **Crucial:** Also upload an **HTML or PDF export** of your notebook so we can see your charts even if GitHub fails to render the notebook code.
-- Once you are ready, please fill out the [Official Submission Form Here](https://forms.cloud.microsoft/e/CeQN2mCyUr) with your links
-
----
-
-## 🛑 CRITICAL: Pre-Submission Checklist
-
-**Before you submit your form, you MUST complete this checklist.**
-
-> ⚠️ **WARNING:** If you miss any of these items, your submission will be flagged as "Incomplete" and you will **NOT** be invited to an interview.
->
-> **We do not accept "permission error" excuses. Test your links in Incognito Mode.**
-
-### 1. Repository & Code Checks
-
-- [ ] **My GitHub Repo is Public.** (Open the link in a Private/Incognito window to verify).
-- [ ] **I have uploaded the `.ipynb` notebook file.**
-- [ ] **I have ALSO uploaded an HTML or PDF export** of the notebook.
-- [ ] **I have NOT uploaded the massive raw dataset.** (Use `.gitignore` or just don't commit the CSV).
-- [ ] **My code uses Relative Paths.**
-
-### 2. Deliverable Checks
-
-- [ ] **My Dashboard link is publicly accessible.** (No login required).
-- [ ] **My Presentation link is publicly accessible.** (Permissions set to "Anyone with the link can view").
-- [ ] **I have updated this `README.md` file** with my Executive Summary and technical notes.
-
-### 3. Completeness
-
-- [ ] I have completed **User Stories 1-4**.
-- [ ] I have completed the **"Candidate's Choice"** challenge and explained it in the README.
-
-**✅ Only when you have checked every box above, proceed to the submission form.**
+**Key finding:** R$499,145 in revenue at risk annually. RJ and SP lead not because of worst late rates — they don't even appear in the top 10 worst states — but because their high order volumes amplify even moderate late rates into large financial exposure. This reveals two distinct problems requiring two different interventions: Nordeste needs operational logistics fixes, while RJ/SP need delivery promise recalibration.
 
 ---
